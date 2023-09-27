@@ -1,67 +1,33 @@
 #!/usr/bin/python3
 """
-    Export TODO list data to CSV
+Using https://jsonplaceholder.typicode.com
+gathers data from API and exports it to CSV file
+Implemented using recursion
 """
-import csv
+import re
 import requests
-from sys import argv
+import sys
 
 
-def get_completed(employee_id):
-    """
-        Script uses REST API to return information about TODO list progress
-        based on given employee ID
-
-        Output:
-            Employee NAME is done with tasks(NUMBER_DONE/TOTAL_NUMBER):
-                TASK_TITLE
-    """
-    url = 'https://jsonplaceholder.typicode.com/users/{}'.format(employee_id)
-    response = requests.get(url).json()
-    name = response.get("name")
-
-    done = 0
-    tasks = []
-    total = 0
-    todo_url = 'https://jsonplaceholder.typicode.com/todos/'
-    for line in requests.get(todo_url).json():
-        if line.get('userId') == employee_id:
-            total += 1
-            if line.get('completed'):
-                done += 1
-                tasks.append(line.get('title'))
-
-    print("Employee {} is done with tasks({}/{}):".format(name, done, total))
-    for task in tasks:
-        print("\t {}".format(task))
+API = "https://jsonplaceholder.typicode.com"
+"""REST API url"""
 
 
-def save_to_CSV(employee_id):
-    """
-        Export TODO list data to CSV for given employee_id
-
-        File name: USER_ID.csv
-
-        Format of file:
-            "USER_ID","USERNAME","TASK_COMPLETED_STATUS","TASK_TITLE"
-    """
-    filename = "{}.csv".format(employee_id)
-    url = 'https://jsonplaceholder.typicode.com/users/{}'.format(employee_id)
-    response = requests.get(url).json()
-    name = response.get("name")
-
-    todo_url = 'https://jsonplaceholder.typicode.com/todos/'
-    todo_response = requests.get(todo_url).json()
-    attrs = ["userId", "username", "completed", "title"]
-    with open(filename, 'w') as csvf:
-        writer = csv.DictWriter(csvf, fieldnames=attrs)
-        writer.writeheader()
-        for line in todo_response:
-            if line.get('userId') == employee_id:
-                line['username'] = name
-                del line['id']
-                writer.writerow(line)
-
-
-if __name__ == "__main__":
-    save_to_CSV(int(argv[1]))
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        if re.fullmatch(r'\d+', sys.argv[1]):
+            id = int(sys.argv[1])
+            user_res = requests.get('{}/users/{}'.format(API, id)).json()
+            todos_res = requests.get('{}/todos'.format(API)).json()
+            user_name = user_res.get('username')
+            todos = list(filter(lambda x: x.get('userId') == id, todos_res))
+            with open('{}.csv'.format(id), 'w') as file:
+                for todo in todos:
+                    file.write(
+                        '"{}","{}","{}","{}"\n'.format(
+                            id,
+                            user_name,
+                            todo.get('completed'),
+                            todo.get('title')
+                        )
+                    )
