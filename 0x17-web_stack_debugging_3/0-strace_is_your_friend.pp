@@ -1,6 +1,7 @@
-# Fixes bad `phpp` extensions to `php`
+# Fix an issue when Wordpress is
+# trying to initializes
 
 exec { 'fix-wordpress':
-  command => 'sed -i s/phpp/php/g /var/www/html/wp-settings.php',
-  path    => '/usr/local/bin/:/bin/'
+  command => "/bin/sed -i /var/www/html/wp-settings.php \
+  -e 's/class-wp-locale.phpp/class-wp-locale.php/'"
 }
