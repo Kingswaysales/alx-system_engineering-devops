@@ -6,7 +6,7 @@
 import requests
 
 
-def def top_ten(subreddit):
+def  number_of_subscribers(subreddit):
     """
         Sends a query to Reddit API
 
